@@ -1,35 +1,120 @@
+import 'package:practica_2/config/conexion.dart';
+import 'package:sqflite/sqflite.dart';
 
 class ProductoDao {
   int? id;
-  int? id_categoria;
+  int? idCategoria;
   String? nombre;
   String? marca;
   String? unidad;
-  int? stock_minimo;
-  String? imagen_ruta;
-  int? id_tienda;
+  int? stockMinimo;
+  String? imagenRuta;
+  int? idTienda;
 
   ProductoDao({
     this.id,
-    this.id_categoria,
+    this.idCategoria,
     this.nombre,
     this.marca,
     this.unidad,
-    this.stock_minimo,
-    this.imagen_ruta,
-    this.id_tienda
-    });
+    this.stockMinimo,
+    this.imagenRuta,
+    this.idTienda,
+  });
 
-  factory ProductoDao.fromMap(Map <String,dynamic> product){
+  factory ProductoDao.fromMap(Map<String, dynamic> product) {
     return ProductoDao(
-    id:product['id'],
-    id_categoria:product['id_categoria'],
-    nombre:product['nombre'],
-    marca:product['marca'],
-    unidad:product['unidad'],
-    stock_minimo:product['stock_minimo'],
-    imagen_ruta:product['imagen_ruta'],
-    id_tienda:product['id_tienda']
+      id: product['id'],
+      idCategoria: product['id_categoria'],
+      nombre: product['nombre'],
+      marca: product['marca'],
+      unidad: product['unidad'],
+      stockMinimo: product['stock_minimo'],
+      imagenRuta: product['imagen_ruta'],
+      idTienda: product['id_tienda'],
     );
-  } 
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'id_categoria': idCategoria,
+      'nombre': nombre,
+      'marca': marca,
+      'unidad': unidad,
+      'stock_minimo': stockMinimo,
+      'imagen_ruta': imagenRuta,
+      'id_tienda': idTienda,
+    };
+  }
+
+  static Future<Database> _getDatabase() async {
+    final db = await Conexion().database;
+    if (db == null) {
+      throw Exception('No se pudo inicializar la base de datos.');
+    }
+    return db;
+  }
+
+  static Future<int> insertar(ProductoDao producto) async {
+    final db = await _getDatabase();
+    return await db.insert(
+      'producto',
+      producto.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  static Future<List<ProductoDao>> obtenerTodos() async {
+    final db = await _getDatabase();
+    final maps = await db.query('producto', orderBy: 'id ASC');
+    return maps.map((map) => ProductoDao.fromMap(map)).toList();
+  }
+
+  static Future<List<ProductoDao>> obtenerPorCategoria(int idCategoria) async {
+    final db = await _getDatabase();
+    final maps = await db.query(
+      'producto',
+      where: 'id_categoria = ?',
+      whereArgs: [idCategoria],
+      orderBy: 'id ASC',
+    );
+    return maps.map((map) => ProductoDao.fromMap(map)).toList();
+  }
+
+  static Future<ProductoDao?> obtenerPorId(int id) async {
+    final db = await _getDatabase();
+    final result = await db.query(
+      'producto',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+
+    if (result.isEmpty) return null;
+    return ProductoDao.fromMap(result.first);
+  }
+
+  static Future<int> actualizar(ProductoDao producto) async {
+    if (producto.id == null) {
+      throw Exception('El producto debe tener un id para actualizarse.');
+    }
+
+    final db = await _getDatabase();
+    return await db.update(
+      'producto',
+      producto.toMap(),
+      where: 'id = ?',
+      whereArgs: [producto.id],
+    );
+  }
+
+  static Future<int> eliminar(int id) async {
+    final db = await _getDatabase();
+    return await db.delete(
+      'producto',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }

@@ -1,31 +1,119 @@
+import 'package:practica_2/config/conexion.dart';
+import 'package:sqflite/sqflite.dart';
+
 class HistorialDao {
   int? id;
-  int? id_producto;
-  int? id_lote;
-  int? id_tienda;
+  int? idProducto;
+  int? idLote;
+  int? idTienda;
   int? cantidad;
-  int? precio_unitario;
-  String? fecha_compra;
+  double? precioUnitario;
+  String? fechaCompra;
 
   HistorialDao({
     this.id,
-    this.id_producto,
-    this.id_lote,
-    this.id_tienda,
+    this.idProducto,
+    this.idLote,
+    this.idTienda,
     this.cantidad,
-    this.precio_unitario,
-    this.fecha_compra,
+    this.precioUnitario,
+    this.fechaCompra,
   });
 
   factory HistorialDao.fromMap(Map<String, dynamic> historial) {
     return HistorialDao(
       id: historial['id'],
-      id_producto: historial['id_producto'],
-      id_lote: historial['id_lote'],
-      id_tienda:historial['id_tienda'] ,
+      idProducto: historial['id_producto'],
+      idLote: historial['id_lote'],
+      idTienda: historial['id_tienda'],
       cantidad: historial['cantidad'],
-      precio_unitario: historial['precio_unitario'],
-      fecha_compra: historial['fecha_compra'],
+      precioUnitario: historial['precio_unitario'] is int
+          ? (historial['precio_unitario'] as int).toDouble()
+          : historial['precio_unitario'],
+      fechaCompra: historial['fecha_compra'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'id_producto': idProducto,
+      'id_lote': idLote,
+      'id_tienda': idTienda,
+      'cantidad': cantidad,
+      'precio_unitario': precioUnitario,
+      'fecha_compra': fechaCompra,
+    };
+  }
+
+  static Future<Database> _getDatabase() async {
+    final db = await Conexion().database;
+    if (db == null) {
+      throw Exception('No se pudo inicializar la base de datos.');
+    }
+    return db;
+  }
+
+  static Future<int> insertar(HistorialDao historial) async {
+    final db = await _getDatabase();
+    return await db.insert(
+      'historial',
+      historial.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  static Future<List<HistorialDao>> obtenerTodos() async {
+    final db = await _getDatabase();
+    final maps = await db.query('historial', orderBy: 'id ASC');
+    return maps.map((map) => HistorialDao.fromMap(map)).toList();
+  }
+
+  static Future<List<HistorialDao>> obtenerPorProducto(int idProducto) async {
+    final db = await _getDatabase();
+    final maps = await db.query(
+      'historial',
+      where: 'id_producto = ?',
+      whereArgs: [idProducto],
+      orderBy: 'id ASC',
+    );
+    return maps.map((map) => HistorialDao.fromMap(map)).toList();
+  }
+
+  static Future<HistorialDao?> obtenerPorId(int id) async {
+    final db = await _getDatabase();
+    final result = await db.query(
+      'historial',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+
+    if (result.isEmpty) return null;
+    return HistorialDao.fromMap(result.first);
+  }
+
+  static Future<int> actualizar(HistorialDao historial) async {
+    if (historial.id == null) {
+      throw Exception('El historial debe tener un id para actualizarse.');
+    }
+
+    final db = await _getDatabase();
+    return await db.update(
+      'historial',
+      historial.toMap(),
+      where: 'id = ?',
+      whereArgs: [historial.id],
+    );
+  }
+
+  static Future<int> eliminar(int id) async {
+    final db = await _getDatabase();
+    return await db.delete(
+      'historial',
+      where: 'id = ?',
+      whereArgs: [id],
     );
   }
 }
+
