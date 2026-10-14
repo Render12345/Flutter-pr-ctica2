@@ -1,16 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:practica_2/Screens/CRUD/categoria/categoria_screen.dart';
+import 'package:practica_2/Screens/CRUD/historial/historial_screen.dart';
+import 'package:practica_2/Screens/CRUD/lote/lote_screen.dart';
+import 'package:practica_2/Screens/CRUD/producto/producto_screen.dart';
+import 'package:practica_2/Screens/CRUD/tienda/tienda_screen.dart';
+import 'package:practica_2/Screens/principal/home_screen.dart';
+
 
 void main() {
-  runApp(const MainApp());
+  runApp(const MyApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(body: Center(child: Text('Hello World!'))),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/home',
+      routes: {
+        '/home':(context) => HomeScreen(),
+        '/categoria': (context) => CategoriaScreen(),
+        '/tienda':(context) => TiendaScreen(),
+        '/producto':(context) => ProductoScreen(),
+        '/historial':(context) => HistorialScreen(),
+        '/lote':(context) => LoteScreen()
+      },
+
     );
   }
 }
