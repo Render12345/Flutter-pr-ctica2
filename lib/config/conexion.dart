@@ -7,7 +7,7 @@ import 'package:path/path.dart';
 
 class Conexion {
   static final nameDB = "Despensa";
-  static final version = 1;
+  static final version = 2;
   static Database? _database;
 
   Future<Database?> get database async {
@@ -19,7 +19,19 @@ class Conexion {
     Directory folder = await getApplicationDocumentsDirectory();
     String pathDb = join(folder.path, nameDB);
 
-    return openDatabase(pathDb, version: version, onCreate: createTables);
+    return openDatabase(
+      pathDb,
+      version: version,
+      onCreate: createTables,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+            'ALTER TABLE lote ADD COLUMN cantidad_inicial INTEGER NOT NULL DEFAULT 0',
+          );
+          await db.execute('UPDATE lote SET cantidad_inicial = cantidad');
+        }
+      },
+    );
   }
 
   Future<void> createTables(Database db, int version) async {
@@ -59,6 +71,7 @@ class Conexion {
       id INTEGER PRIMARY KEY,
       id_producto INTEGER,
       cantidad INTEGER,
+      cantidad_inicial INTEGER NOT NULL DEFAULT 0,
       fecha_caducidad TEXT,
       fecha_ingreso TEXT,
       activo INTEGER,

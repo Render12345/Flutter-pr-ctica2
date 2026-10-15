@@ -5,6 +5,7 @@ class LoteDao {
   int? id;
   int? idProducto;
   int? cantidad;
+  int? cantidadInicial;
   String? fechaCaducidad;
   String? fechaIngreso;
   int? activo;
@@ -13,6 +14,7 @@ class LoteDao {
     this.id,
     this.idProducto,
     this.cantidad,
+    this.cantidadInicial,
     this.fechaCaducidad,
     this.fechaIngreso,
     this.activo,
@@ -23,6 +25,7 @@ class LoteDao {
       id: lote['id'],
       idProducto: lote['id_producto'],
       cantidad: lote['cantidad'],
+      cantidadInicial: lote['cantidad_inicial'],
       fechaCaducidad: lote['fecha_caducidad'],
       fechaIngreso: lote['fecha_ingreso'],
       activo: lote['activo'],
@@ -34,6 +37,7 @@ class LoteDao {
       'id': id,
       'id_producto': idProducto,
       'cantidad': cantidad,
+      'cantidad_inicial': cantidadInicial ?? cantidad,
       'fecha_caducidad': fechaCaducidad,
       'fecha_ingreso': fechaIngreso,
       'activo': activo,
@@ -103,11 +107,6 @@ class LoteDao {
 
   static Future<int> eliminar(int id) async {
     final db = await _getDatabase();
-    return await db.delete(
-      'lote',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('lote', where: 'id = ?', whereArgs: [id]);
   }
 }
-
