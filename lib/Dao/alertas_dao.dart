@@ -30,14 +30,17 @@ class AlertasDao {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'id_producto': idProducto,
       'id_lote': idLote,
       'fecha_alerta': fechaAlerta,
       'tipo': tipo,
       'notificada': notificada,
     };
+    if (id != null) {
+      map['id'] = id;
+    }
+    return map;
   }
 
   static Future<Database> _getDatabase() async {

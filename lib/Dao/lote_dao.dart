@@ -33,8 +33,7 @@ class LoteDao {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'id_producto': idProducto,
       'cantidad': cantidad,
       'cantidad_inicial': cantidadInicial ?? cantidad,
@@ -42,6 +41,10 @@ class LoteDao {
       'fecha_ingreso': fechaIngreso,
       'activo': activo,
     };
+    if (id != null) {
+      map['id'] = id;
+    }
+    return map;
   }
 
   static Future<Database> _getDatabase() async {

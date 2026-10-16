@@ -40,7 +40,11 @@ class _ProductoScreenState extends State<ProductoScreen> {
     ''');
   }
 
-  void _recargar() => setState(() => _productos = _obtenerProductos());
+  void _recargar() {
+    if (mounted) {
+      setState(() => _productos = _obtenerProductos());
+    }
+  }
 
   Future<String?> _elegirImagen() async {
     final seleccion = await ImagePicker().pickImage(
@@ -214,23 +218,31 @@ class _ProductoScreenState extends State<ProductoScreen> {
         ),
       ),
     );
-    if (guardar == true) {
-      final value = ProductoDao(
-        id: producto?.id,
-        idCategoria: categoriaSeleccionada,
-        nombre: nombre.text.trim(),
-        marca: marca.text.trim(),
-        unidad: unidad.text.trim(),
-        stockMinimo: int.parse(minimo.text),
-        imagenRuta: imagen.text.trim().isEmpty ? null : imagen.text.trim(),
-        idTienda: tiendaSeleccionada,
-      );
-      if (producto == null) {
-        await ProductoDao.insertar(value);
-      } else {
-        await ProductoDao.actualizar(value);
+    if (guardar == true && mounted) {
+      try {
+        final value = ProductoDao(
+          id: producto?.id,
+          idCategoria: categoriaSeleccionada,
+          nombre: nombre.text.trim(),
+          marca: marca.text.trim(),
+          unidad: unidad.text.trim(),
+          stockMinimo: int.parse(minimo.text),
+          imagenRuta: imagen.text.trim().isEmpty ? null : imagen.text.trim(),
+          idTienda: tiendaSeleccionada,
+        );
+        if (producto == null) {
+          await ProductoDao.insertar(value);
+        } else {
+          await ProductoDao.actualizar(value);
+        }
+        _recargar();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al guardar: $e')),
+          );
+        }
       }
-      _recargar();
     }
     nombre.dispose();
     marca.dispose();
@@ -282,8 +294,16 @@ class _ProductoScreenState extends State<ProductoScreen> {
     );
     if (!mounted) return;
     if (confirmar == true) {
-      await ProductoDao.eliminar((producto['id'] as num).toInt());
-      if (mounted) _recargar();
+      try {
+        await ProductoDao.eliminar((producto['id'] as num).toInt());
+        _recargar();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al eliminar: $e')),
+          );
+        }
+      }
     }
   }
 
@@ -292,7 +312,8 @@ class _ProductoScreenState extends State<ProductoScreen> {
     return BaseScreen.buildBase(
       context: context,
       title: "Productos",
-      body: FutureBuilder<List<Map<String, Object?>>>(
+      body: SafeArea(
+        child: FutureBuilder<List<Map<String, Object?>>>(
         future: _productos,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -375,6 +396,7 @@ class _ProductoScreenState extends State<ProductoScreen> {
             ],
           );
         },
+        ),
       ),
     );
   }

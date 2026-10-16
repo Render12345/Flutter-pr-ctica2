@@ -30,7 +30,11 @@ class _LoteScreenState extends State<LoteScreen> {
     ''');
   }
 
-  void _recargar() => setState(() => _lotes = _obtenerLotes());
+  void _recargar() {
+    if (mounted) {
+      setState(() => _lotes = _obtenerLotes());
+    }
+  }
 
   Future<void> _editar([Map<String, Object?>? existente]) async {
     final productos = await ProductoDao.obtenerTodos();
@@ -187,44 +191,52 @@ class _LoteScreenState extends State<LoteScreen> {
       final fecha =
           '${fechaCaducidad!.year.toString().padLeft(4, '0')}-${fechaCaducidad!.month.toString().padLeft(2, '0')}-${fechaCaducidad!.day.toString().padLeft(2, '0')}';
       final cantidad = int.parse(cantidadActual.text);
-      if (existente == null) {
-        final idLote = await LoteDao.insertar(
-          LoteDao(
-            idProducto: productoSeleccionado,
-            cantidad: cantidad,
-            cantidadInicial: int.parse(cantidadInicial.text),
-            fechaCaducidad: fecha,
-            fechaIngreso: DateTime.now().toIso8601String().substring(0, 10),
-            activo: 1,
-          ),
-        );
-        final producto = productos.firstWhere(
-          (item) => item.id == productoSeleccionado,
-        );
-        await HistorialDao.insertar(
-          HistorialDao(
-            idProducto: productoSeleccionado,
-            idLote: idLote,
-            idTienda: producto.idTienda,
-            cantidad: int.parse(cantidadInicial.text),
-            precioUnitario: double.tryParse(precio.text.replaceAll(',', '.')),
-            fechaCompra: DateTime.now().toIso8601String().substring(0, 10),
-          ),
-        );
-      } else {
-        await LoteDao.actualizar(
-          LoteDao(
-            id: (existente['id'] as num).toInt(),
-            idProducto: productoSeleccionado,
-            cantidad: cantidad,
-            cantidadInicial: int.parse(cantidadInicial.text),
-            fechaCaducidad: fecha,
-            fechaIngreso: existente['fecha_ingreso'] as String?,
-            activo: activo ? 1 : 0,
-          ),
-        );
+      try {
+        if (existente == null) {
+          final idLote = await LoteDao.insertar(
+            LoteDao(
+              idProducto: productoSeleccionado,
+              cantidad: cantidad,
+              cantidadInicial: int.parse(cantidadInicial.text),
+              fechaCaducidad: fecha,
+              fechaIngreso: DateTime.now().toIso8601String().substring(0, 10),
+              activo: 1,
+            ),
+          );
+          final producto = productos.firstWhere(
+            (item) => item.id == productoSeleccionado,
+          );
+          await HistorialDao.insertar(
+            HistorialDao(
+              idProducto: productoSeleccionado,
+              idLote: idLote,
+              idTienda: producto.idTienda,
+              cantidad: int.parse(cantidadInicial.text),
+              precioUnitario: double.tryParse(precio.text.replaceAll(',', '.')),
+              fechaCompra: DateTime.now().toIso8601String().substring(0, 10),
+            ),
+          );
+        } else {
+          await LoteDao.actualizar(
+            LoteDao(
+              id: (existente['id'] as num).toInt(),
+              idProducto: productoSeleccionado,
+              cantidad: cantidad,
+              cantidadInicial: int.parse(cantidadInicial.text),
+              fechaCaducidad: fecha,
+              fechaIngreso: existente['fecha_ingreso'] as String?,
+              activo: activo ? 1 : 0,
+            ),
+          );
+        }
+        _recargar();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al guardar: $e')),
+          );
+        }
       }
-      if (mounted) _recargar();
     }
     cantidadInicial.dispose();
     cantidadActual.dispose();
@@ -274,20 +286,28 @@ class _LoteScreenState extends State<LoteScreen> {
     );
     if (!mounted) return;
     if (guardar == true) {
-      final n = int.parse(cantidad.text);
-      await LoteDao.actualizar(
-        LoteDao(
-          id: (lote['id'] as num).toInt(),
-          idProducto: (lote['id_producto'] as num).toInt(),
-          cantidad: actual - n,
-          cantidadInicial:
-              (lote['cantidad_inicial'] as num?)?.toInt() ?? actual,
-          fechaCaducidad: lote['fecha_caducidad'] as String?,
-          fechaIngreso: lote['fecha_ingreso'] as String?,
-          activo: actual == n ? 0 : (lote['activo'] as int? ?? 1),
-        ),
-      );
-      if (mounted) _recargar();
+      try {
+        final n = int.parse(cantidad.text);
+        await LoteDao.actualizar(
+          LoteDao(
+            id: (lote['id'] as num).toInt(),
+            idProducto: (lote['id_producto'] as num).toInt(),
+            cantidad: actual - n,
+            cantidadInicial:
+                (lote['cantidad_inicial'] as num?)?.toInt() ?? actual,
+            fechaCaducidad: lote['fecha_caducidad'] as String?,
+            fechaIngreso: lote['fecha_ingreso'] as String?,
+            activo: actual == n ? 0 : (lote['activo'] as int? ?? 1),
+          ),
+        );
+        _recargar();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al actualizar existencias: $e')),
+          );
+        }
+      }
     }
     cantidad.dispose();
   }
@@ -300,7 +320,8 @@ class _LoteScreenState extends State<LoteScreen> {
     return BaseScreen.buildBase(
       context: context,
       title: "Lotes",
-      body: FutureBuilder<List<Map<String, Object?>>>(
+      body: SafeArea(
+        child: FutureBuilder<List<Map<String, Object?>>>(
         future: _lotes,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -372,6 +393,7 @@ class _LoteScreenState extends State<LoteScreen> {
             ],
           );
         },
+        ),
       ),
     );
   }

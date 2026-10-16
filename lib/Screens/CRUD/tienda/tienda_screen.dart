@@ -20,7 +20,11 @@ class _TiendaScreenState extends State<TiendaScreen> {
     _tiendas = TiendaDao.obtenerTodos();
   }
 
-  void _recargar() => setState(() => _tiendas = TiendaDao.obtenerTodos());
+  void _recargar() {
+    if (mounted) {
+      setState(() => _tiendas = TiendaDao.obtenerTodos());
+    }
+  }
 
   Future<void> _editar([TiendaDao? tienda]) async {
     final nombre = TextEditingController(text: tienda?.nombre ?? '');
@@ -71,12 +75,20 @@ class _TiendaScreenState extends State<TiendaScreen> {
         nombre: nombre.text.trim(),
         direccion: direccion.text.trim(),
       );
-      if (tienda == null) {
-        await TiendaDao.insertar(value);
-      } else {
-        await TiendaDao.actualizar(value);
+      try {
+        if (tienda == null) {
+          await TiendaDao.insertar(value);
+        } else {
+          await TiendaDao.actualizar(value);
+        }
+        _recargar();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al guardar: $e')),
+          );
+        }
       }
-      _recargar();
     }
     nombre.dispose();
     direccion.dispose();
@@ -125,8 +137,16 @@ class _TiendaScreenState extends State<TiendaScreen> {
     );
     if (!mounted) return;
     if (confirmar == true) {
-      await TiendaDao.eliminar(tienda.id!);
-      if (mounted) _recargar();
+      try {
+        await TiendaDao.eliminar(tienda.id!);
+        _recargar();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al eliminar: $e')),
+          );
+        }
+      }
     }
   }
 
@@ -135,7 +155,8 @@ class _TiendaScreenState extends State<TiendaScreen> {
     return BaseScreen.buildBase(
       context: context,
       title: "Tiendas",
-      body: FutureBuilder<List<TiendaDao>>(
+      body: SafeArea(
+        child: FutureBuilder<List<TiendaDao>>(
         future: _tiendas,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -201,6 +222,7 @@ class _TiendaScreenState extends State<TiendaScreen> {
             ],
           );
         },
+        ),
       ),
     );
   }

@@ -42,7 +42,8 @@ class _HistorialScreenState extends State<HistorialScreen> {
     return BaseScreen.buildBase(
       context: context,
       title: "Historial de compras",
-      body: FutureBuilder<List<Map<String, Object?>>>(
+      body: SafeArea(
+        child: FutureBuilder<List<Map<String, Object?>>>(
         future: _compras,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -138,6 +139,7 @@ class _HistorialScreenState extends State<HistorialScreen> {
             ],
           );
         },
+        ),
       ),
     );
   }

@@ -17,11 +17,14 @@ class TiendaDao {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'nombre': nombre,
       'direccion': direccion,
     };
+    if (id != null) {
+      map['id'] = id;
+    }
+    return map;
   }
 
   static Future<Database> _getDatabase() async {

@@ -27,16 +27,13 @@ class HistorialDao {
       idLote: historial['id_lote'],
       idTienda: historial['id_tienda'],
       cantidad: historial['cantidad'],
-      precioUnitario: historial['precio_unitario'] is int
-          ? (historial['precio_unitario'] as int).toDouble()
-          : historial['precio_unitario'],
+        precioUnitario: (historial['precio_unitario'] as num?)?.toDouble(),
       fechaCompra: historial['fecha_compra'],
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'id_producto': idProducto,
       'id_lote': idLote,
       'id_tienda': idTienda,
@@ -44,6 +41,10 @@ class HistorialDao {
       'precio_unitario': precioUnitario,
       'fecha_compra': fechaCompra,
     };
+    if (id != null) {
+      map['id'] = id;
+    }
+    return map;
   }
 
   static Future<Database> _getDatabase() async {

@@ -36,8 +36,7 @@ class ProductoDao {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'id_categoria': idCategoria,
       'nombre': nombre,
       'marca': marca,
@@ -46,6 +45,10 @@ class ProductoDao {
       'imagen_ruta': imagenRuta,
       'id_tienda': idTienda,
     };
+    if (id != null) {
+      map['id'] = id;
+    }
+    return map;
   }
 
   static Future<Database> _getDatabase() async {
