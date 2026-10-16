@@ -56,8 +56,9 @@ class _TiendaScreenState extends State<TiendaScreen> {
           ),
           FilledButton(
             onPressed: () {
-              if (formKey.currentState!.validate())
+              if (formKey.currentState!.validate()) {
                 Navigator.pop(dialogContext, true);
+              }
             },
             child: const Text('Guardar'),
           ),
@@ -82,8 +83,9 @@ class _TiendaScreenState extends State<TiendaScreen> {
   }
 
   Future<void> _eliminar(TiendaDao tienda) async {
+    final currentContext = context;
     final db = await Conexion().database;
-    if (!mounted) return;
+    if (!currentContext.mounted) return;
     final vinculados =
         Sqflite.firstIntValue(
           await db!.rawQuery(
@@ -93,7 +95,8 @@ class _TiendaScreenState extends State<TiendaScreen> {
         ) ??
         0;
     if (vinculados > 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!currentContext.mounted) return;
+      ScaffoldMessenger.of(currentContext).showSnackBar(
         const SnackBar(
           content: Text(
             'No se puede eliminar: la tienda aparece en productos o compras.',
@@ -102,18 +105,19 @@ class _TiendaScreenState extends State<TiendaScreen> {
       );
       return;
     }
+    if (!currentContext.mounted) return;
     final confirmar = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: currentContext,
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Eliminar tienda'),
         content: Text('¿Eliminar "${tienda.nombre}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Eliminar'),
           ),
         ],
@@ -128,16 +132,18 @@ class _TiendaScreenState extends State<TiendaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseScreen.m_getBase(
+    return BaseScreen.buildBase(
       context: context,
       title: "Tiendas",
       body: FutureBuilder<List<TiendaDao>>(
         future: _tiendas,
         builder: (context, snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
-          if (!snapshot.hasData)
+          }
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
           final tiendas = snapshot.data!;
           return Column(
             children: [

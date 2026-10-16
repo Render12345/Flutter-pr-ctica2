@@ -73,7 +73,7 @@ class _LoteScreenState extends State<LoteScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     DropdownButtonFormField<int>(
-                      value: productoSeleccionado,
+                      initialValue: productoSeleccionado,
                       decoration: const InputDecoration(labelText: 'Producto'),
                       items: productos
                           .map(
@@ -142,8 +142,9 @@ class _LoteScreenState extends State<LoteScreen> {
                           firstDate: DateTime(2000),
                           lastDate: DateTime(2100),
                         );
-                        if (picked != null)
+                        if (picked != null) {
                           setDialogState(() => fechaCaducidad = picked);
+                        }
                       },
                       icon: const Icon(Icons.event),
                       label: Text(
@@ -171,8 +172,9 @@ class _LoteScreenState extends State<LoteScreen> {
             ),
             FilledButton(
               onPressed: () {
-                if (formKey.currentState!.validate() && fechaCaducidad != null)
+                if (formKey.currentState!.validate() && fechaCaducidad != null) {
                   Navigator.pop(dialogContext, true);
+                }
               },
               child: const Text('Guardar'),
             ),
@@ -261,8 +263,9 @@ class _LoteScreenState extends State<LoteScreen> {
           ),
           FilledButton(
             onPressed: () {
-              if (formKey.currentState!.validate())
+              if (formKey.currentState!.validate()) {
                 Navigator.pop(context, true);
+              }
             },
             child: const Text('Actualizar'),
           ),
@@ -294,16 +297,18 @@ class _LoteScreenState extends State<LoteScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseScreen.m_getBase(
+    return BaseScreen.buildBase(
       context: context,
       title: "Lotes",
       body: FutureBuilder<List<Map<String, Object?>>>(
         future: _lotes,
         builder: (context, snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
-          if (!snapshot.hasData)
+          }
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
           final lotes = snapshot.data!;
           return Column(
             children: [

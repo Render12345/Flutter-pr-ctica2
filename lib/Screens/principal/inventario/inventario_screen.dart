@@ -80,12 +80,14 @@ class _InventarioScreenState extends State<InventarioScreen> {
     return FutureBuilder<List<Map<String, Object?>>>(
       future: _obtenerInventario(),
       builder: (context, snapshot) {
-        if (snapshot.hasError)
+        if (snapshot.hasError) {
           return Center(
             child: Text('Error al cargar inventario: ${snapshot.error}'),
           );
-        if (!snapshot.hasData)
+        }
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
         final rows = snapshot.data!;
         final categorias = <int, String>{};
         for (final row in rows) {

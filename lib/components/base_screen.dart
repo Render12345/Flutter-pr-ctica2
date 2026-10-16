@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class BaseScreen {
-  static Widget m_getBase({
+  static Widget buildBase({
     required BuildContext context,
     required String title,
     required Widget body,

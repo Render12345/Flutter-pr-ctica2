@@ -85,8 +85,9 @@ class _CategoriaScreenState extends State<CategoriaScreen> {
   }
 
   Future<void> _eliminar(CategoriaDao categoria) async {
+    final currentContext = context;
     final db = await Conexion().database;
-    if (!mounted) return;
+    if (!currentContext.mounted) return;
     final vinculados =
         Sqflite.firstIntValue(
           await db!.rawQuery(
@@ -96,23 +97,29 @@ class _CategoriaScreenState extends State<CategoriaScreen> {
         ) ??
         0;
     if (vinculados > 0) {
-      _mensaje(
-        'No se puede eliminar: hay $vinculados productos en esta categoría.',
+      if (!currentContext.mounted) return;
+      ScaffoldMessenger.of(currentContext).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No se puede eliminar: hay $vinculados productos en esta categoría.',
+          ),
+        ),
       );
       return;
     }
+    if (!currentContext.mounted) return;
     final confirmar = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: currentContext,
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Eliminar categoría'),
         content: Text('¿Eliminar "${categoria.nombre}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Eliminar'),
           ),
         ],
@@ -125,13 +132,9 @@ class _CategoriaScreenState extends State<CategoriaScreen> {
     }
   }
 
-  void _mensaje(String texto) =>
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(texto)));
-
   @override
   Widget build(BuildContext context) {
-    return BaseScreen.m_getBase(
+    return BaseScreen.buildBase(
       context: context,
       title: "Categorías",
       body: FutureBuilder<List<CategoriaDao>>(

@@ -48,12 +48,14 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
     return FutureBuilder<List<Map<String, Object?>>>(
       future: _lotes,
       builder: (context, snapshot) {
-        if (snapshot.hasError)
+        if (snapshot.hasError) {
           return Center(
             child: Text('Error al cargar alertas: ${snapshot.error}'),
           );
-        if (!snapshot.hasData)
+        }
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
         final lotes = snapshot.data!;
         final eventosSeleccionados = _eventos(_seleccionado ?? _enfoque, lotes);
         return RefreshIndicator(

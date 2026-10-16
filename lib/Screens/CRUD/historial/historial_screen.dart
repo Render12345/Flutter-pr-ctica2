@@ -39,16 +39,18 @@ class _HistorialScreenState extends State<HistorialScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseScreen.m_getBase(
+    return BaseScreen.buildBase(
       context: context,
       title: "Historial de compras",
       body: FutureBuilder<List<Map<String, Object?>>>(
         future: _compras,
         builder: (context, snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
-          if (!snapshot.hasData)
+          }
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
           final compras = snapshot.data!;
           final texto = _busqueda.text.trim().toLowerCase();
           final filtradas = compras

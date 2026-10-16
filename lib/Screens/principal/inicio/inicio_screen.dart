@@ -92,8 +92,9 @@ class _InicioScreenState extends State<InicioScreen> {
             child: Text('No se pudo cargar el resumen: ${snapshot.error}'),
           );
         }
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
 
         final productos = snapshot.data!;
         final caducan = productos.where(_proximoACaducar).toList();

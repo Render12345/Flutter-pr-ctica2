@@ -155,7 +155,7 @@ class _ProductoScreenState extends State<ProductoScreen> {
                         ),
                       ),
                     DropdownButtonFormField<int?>(
-                      value: categoriaSeleccionada,
+                      initialValue: categoriaSeleccionada,
                       decoration: const InputDecoration(labelText: 'Categoría'),
                       items: [
                         const DropdownMenuItem<int?>(
@@ -173,7 +173,7 @@ class _ProductoScreenState extends State<ProductoScreen> {
                           setDialogState(() => categoriaSeleccionada = value),
                     ),
                     DropdownButtonFormField<int?>(
-                      value: tiendaSeleccionada,
+                      initialValue: tiendaSeleccionada,
                       decoration: const InputDecoration(
                         labelText: 'Tienda habitual',
                       ),
@@ -204,8 +204,9 @@ class _ProductoScreenState extends State<ProductoScreen> {
             ),
             FilledButton(
               onPressed: () {
-                if (formKey.currentState!.validate())
+                if (formKey.currentState!.validate()) {
                   Navigator.pop(dialogContext, true);
+                }
               },
               child: const Text('Guardar'),
             ),
@@ -239,8 +240,9 @@ class _ProductoScreenState extends State<ProductoScreen> {
   }
 
   Future<void> _eliminar(Map<String, Object?> producto) async {
+    final currentContext = context;
     final db = await Conexion().database;
-    if (!mounted) return;
+    if (!currentContext.mounted) return;
     final asociados =
         Sqflite.firstIntValue(
           await db!.rawQuery(
@@ -250,7 +252,8 @@ class _ProductoScreenState extends State<ProductoScreen> {
         ) ??
         0;
     if (asociados > 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!currentContext.mounted) return;
+      ScaffoldMessenger.of(currentContext).showSnackBar(
         const SnackBar(
           content: Text(
             'No se puede eliminar: el producto tiene lotes o historial.',
@@ -259,18 +262,19 @@ class _ProductoScreenState extends State<ProductoScreen> {
       );
       return;
     }
+    if (!currentContext.mounted) return;
     final confirmar = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: currentContext,
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Eliminar producto'),
         content: Text('¿Eliminar "${producto['nombre']}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Eliminar'),
           ),
         ],
@@ -285,16 +289,18 @@ class _ProductoScreenState extends State<ProductoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseScreen.m_getBase(
+    return BaseScreen.buildBase(
       context: context,
       title: "Productos",
       body: FutureBuilder<List<Map<String, Object?>>>(
         future: _productos,
         builder: (context, snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
-          if (!snapshot.hasData)
+          }
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
           final productos = snapshot.data!;
           return Column(
             children: [
@@ -334,8 +340,9 @@ class _ProductoScreenState extends State<ProductoScreen> {
                               isThreeLine: true,
                               trailing: PopupMenuButton<String>(
                                 onSelected: (value) {
-                                  if (value == 'edit')
+                                  if (value == 'edit') {
                                     _editar(ProductoDao.fromMap(item));
+                                  }
                                   if (value == 'delete') _eliminar(item);
                                 },
                                 itemBuilder: (context) => const [

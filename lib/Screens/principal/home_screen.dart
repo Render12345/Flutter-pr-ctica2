@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:practica_2/Screens/principal/calendario/calendario_screen.dart';
 import 'package:practica_2/Screens/principal/inicio/inicio_screen.dart';
 import 'package:practica_2/Screens/principal/inventario/inventario_screen.dart';
@@ -14,7 +13,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int indiceSeleccionado = 0;
-  final List<Widget> ListWidgets = [
+  final List<Widget> listWidgets = [
     InicioScreen(),
     CalendarioScreen(),
     InventarioScreen(),
@@ -22,10 +21,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseScreen.m_getBase(
+    return BaseScreen.buildBase(
       context: context,
       title: 'Gestión de inventario doméstico',
-      body: ListWidgets[indiceSeleccionado],
+      body: listWidgets[indiceSeleccionado],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: indiceSeleccionado,
