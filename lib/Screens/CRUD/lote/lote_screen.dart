@@ -32,7 +32,9 @@ class _LoteScreenState extends State<LoteScreen> {
 
   void _recargar() {
     if (mounted) {
-      setState(() => _lotes = _obtenerLotes());
+      setState(() {
+        _lotes = _obtenerLotes();
+      });
     }
   }
 

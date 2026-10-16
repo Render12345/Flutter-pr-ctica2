@@ -42,7 +42,9 @@ class _ProductoScreenState extends State<ProductoScreen> {
 
   void _recargar() {
     if (mounted) {
-      setState(() => _productos = _obtenerProductos());
+      setState(() {
+        _productos = _obtenerProductos();
+      });
     }
   }
 

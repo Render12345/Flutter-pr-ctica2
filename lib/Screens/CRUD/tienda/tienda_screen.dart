@@ -22,7 +22,9 @@ class _TiendaScreenState extends State<TiendaScreen> {
 
   void _recargar() {
     if (mounted) {
-      setState(() => _tiendas = TiendaDao.obtenerTodos());
+      setState(() {
+        _tiendas = TiendaDao.obtenerTodos();
+      });
     }
   }
 

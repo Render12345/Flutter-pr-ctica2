@@ -41,7 +41,12 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
     return fecha != null && isSameDay(fecha, dia);
   }).toList();
 
-  void _recargar() => setState(() => _lotes = _obtenerLotes());
+  void _recargar() {
+    if (!mounted) return;
+    setState(() {
+      _lotes = _obtenerLotes();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
