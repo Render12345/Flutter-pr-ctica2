@@ -6,6 +6,7 @@ class BaseScreen {
     required String title,
     required Widget body,
     Widget? bottomNavigationBar,
+    Widget? floatingActionButton, //Ahora es Opcional (Widget?) y sin 'required'
   }) {
     void navegarA(String ruta) {
       // Cerrar el menú desplegable.
@@ -63,7 +64,6 @@ class BaseScreen {
                       ),
                     ),
                   ),
-              
                   Expanded(
                     child: ListView(
                       padding: EdgeInsets.zero,
@@ -96,9 +96,7 @@ class BaseScreen {
                       ],
                     ),
                   ),
-              
                   const Divider(color: Colors.white38),
-              
                   ListTile(
                     leading: const Icon(Icons.close),
                     title: const Text('Cerrar menú'),
@@ -113,6 +111,8 @@ class BaseScreen {
         ),
         /************Contenido principal*****************************/
         body: body,
+        /************Botón Flotante (opcional)***********************/
+        floatingActionButton: floatingActionButton, 
         /************Menu Inferior (opcional)************************/
         bottomNavigationBar: bottomNavigationBar,
       ),

@@ -17,11 +17,14 @@ class CategoriaDao {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'nombre': nombre,
       'descripcion': descripcion,
     };
+    if (id != null) {
+      map['id'] = id;
+    }
+    return map;
   }
 
   static Future<Database> _getDatabase() async {
