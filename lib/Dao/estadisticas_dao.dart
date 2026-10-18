@@ -82,29 +82,18 @@ class EstadisticasDao {
         ), 0) AS promedio_desperdicio,
 
         COALESCE((
-          SELECT AVG((
-            SELECT SUM(ml.cantidad)
-            FROM movimiento_lote ml
-            WHERE ml.id_lote = l.id
+          SELECT AVG(consumo_por_lote)
+          FROM (
+            SELECT
+              l.id,
+              SUM(ml.cantidad) AS consumo_por_lote
+            FROM lote l
+            INNER JOIN movimiento_lote ml
+              ON ml.id_lote = l.id
+            WHERE l.id_producto = p.id
               AND ml.tipo = 'consumo'
-          ))
-          FROM lote l
-          WHERE l.id_producto = p.id
-            AND l.cantidad = 0
-
-            AND EXISTS (
-              SELECT 1
-              FROM movimiento_lote ml
-              WHERE ml.id_lote = l.id
-                AND ml.tipo = 'consumo'
-            )
-
-            AND NOT EXISTS (
-              SELECT 1
-              FROM movimiento_lote ml
-              WHERE ml.id_lote = l.id
-                AND ml.tipo = 'desecho'
-            )
+            GROUP BY l.id
+          )
         ), 0) AS promedio_consumo_lote
 
       FROM producto p
@@ -117,8 +106,7 @@ class EstadisticasDao {
     double sumar(String campo) {
       return productos.fold<double>(
         0,
-        (total, producto) =>
-            total + _numero(producto[campo]),
+        (total, producto) => total + _numero(producto[campo]),
       );
     }
 
