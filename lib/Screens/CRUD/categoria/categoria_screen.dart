@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:practica_2/Dao/categoria_dao.dart';
 import 'package:practica_2/config/conexion.dart';
@@ -21,91 +22,41 @@ class _CategoriaScreenState extends State<CategoriaScreen> {
   }
 
   void _recargar() {
-    if (mounted) {
-      setState(() {
-        _categorias = CategoriaDao.obtenerTodos();
-      });
-    }
+    if (!mounted) return;
+
+    setState(() {
+      _categorias = CategoriaDao.obtenerTodos();
+    });
   }
 
   Future<void> _editar([CategoriaDao? categoria]) async {
-    final nombre = TextEditingController(text: categoria?.nombre ?? '');
-    final descripcion = TextEditingController(
-      text: categoria?.descripcion ?? '',
-    );
-    final formKey = GlobalKey<FormState>();
-
-    final guardar = await showDialog<bool>(
+    final resultado = await showDialog<CategoriaDao>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(categoria == null ? 'Nueva categoría' : 'Editar categoría'),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: nombre,
-                decoration: const InputDecoration(labelText: 'Nombre'),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Ingresa un nombre'
-                    : null,
-              ),
-              TextFormField(
-                controller: descripcion,
-                decoration: const InputDecoration(labelText: 'Descripción'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.pop(dialogContext, true);
-              }
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
+      builder: (_) => _CategoriaDialog(categoria: categoria),
     );
 
-    if (guardar == true) {
-      final value = CategoriaDao(
-        id: categoria?.id,
-        nombre: nombre.text.trim(),
-        descripcion: descripcion.text.trim(),
-      );
+    if (resultado == null || !mounted) return;
 
-      try {
-        if (categoria == null) {
-          await CategoriaDao.insertar(value);
-        } else {
-          await CategoriaDao.actualizar(value);
-        }
-        _recargar();
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al guardar: $e')),
-          );
-        }
+    try {
+      if (categoria == null) {
+        await CategoriaDao.insertar(resultado);
+      } else {
+        await CategoriaDao.actualizar(resultado);
       }
-    }
 
-    nombre.dispose();
-    descripcion.dispose();
+      _recargar();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar: $e')),
+      );
+    }
   }
 
   Future<void> _eliminar(CategoriaDao categoria) async {
-    final currentContext = context;
     final db = await Conexion().database;
-    if (!currentContext.mounted) return;
+    if (!mounted) return;
 
     final vinculados = Sqflite.firstIntValue(
           await db!.rawQuery(
@@ -115,48 +66,53 @@ class _CategoriaScreenState extends State<CategoriaScreen> {
         ) ??
         0;
 
+    if (!mounted) return;
+
     if (vinculados > 0) {
-      if (!currentContext.mounted) return;
-      ScaffoldMessenger.of(currentContext).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'No se puede eliminar: hay $vinculados productos en esta categoría.',
+            'No se puede eliminar: hay $vinculados '
+            'productos en esta categoría.',
           ),
         ),
       );
       return;
     }
 
-    if (!currentContext.mounted) return;
     final confirmar = await showDialog<bool>(
-      context: currentContext,
+      context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Eliminar categoría'),
         content: Text('¿Eliminar "${categoria.nombre}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
+            onPressed: () {
+              Navigator.of(dialogContext).pop(false);
+            },
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
+            onPressed: () {
+              Navigator.of(dialogContext).pop(true);
+            },
             child: const Text('Eliminar'),
           ),
         ],
       ),
     );
 
-    if (confirmar == true && mounted) {
-      try {
-        await CategoriaDao.eliminar(categoria.id!);
-        _recargar();
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al eliminar: $e')),
-          );
-        }
-      }
+    if (confirmar != true || !mounted) return;
+
+    try {
+      await CategoriaDao.eliminar(categoria.id!);
+      _recargar();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al eliminar: $e')),
+      );
     }
   }
 
@@ -164,24 +120,32 @@ class _CategoriaScreenState extends State<CategoriaScreen> {
   Widget build(BuildContext context) {
     return BaseScreen.buildBase(
       context: context,
-      title: "Categorías",
+      title: 'Categorías',
       body: SafeArea(
         child: Column(
           children: [
-            // 💡 El Expanded evita el error de RenderFlex overflowed por 199,733 px
             Expanded(
               child: FutureBuilder<List<CategoriaDao>>(
                 future: _categorias,
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(
+                      child: Text('Error: ${snapshot.error}'),
+                    );
                   }
+
                   if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
                   }
+
                   final categorias = snapshot.data!;
+
                   if (categorias.isEmpty) {
-                    return const Center(child: Text('Aún no hay categorías.'));
+                    return const Center(
+                      child: Text('Aún no hay categorías.'),
+                    );
                   }
 
                   return ListView.builder(
@@ -189,6 +153,7 @@ class _CategoriaScreenState extends State<CategoriaScreen> {
                     itemCount: categorias.length,
                     itemBuilder: (context, index) {
                       final categoria = categorias[index];
+
                       return Card(
                         child: ListTile(
                           leading: const CircleAvatar(
@@ -223,11 +188,11 @@ class _CategoriaScreenState extends State<CategoriaScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16),
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: _editar,
+                  onPressed: () => _editar(),
                   icon: const Icon(Icons.add),
                   label: const Text('Agregar categoría'),
                 ),
@@ -236,6 +201,113 @@ class _CategoriaScreenState extends State<CategoriaScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CategoriaDialog extends StatefulWidget {
+  final CategoriaDao? categoria;
+
+  const _CategoriaDialog({this.categoria});
+
+  @override
+  State<_CategoriaDialog> createState() => _CategoriaDialogState();
+}
+
+class _CategoriaDialogState extends State<_CategoriaDialog> {
+  late final TextEditingController _nombre;
+  late final TextEditingController _descripcion;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _nombre = TextEditingController(
+      text: widget.categoria?.nombre ?? '',
+    );
+
+    _descripcion = TextEditingController(
+      text: widget.categoria?.descripcion ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _nombre.dispose();
+    _descripcion.dispose();
+    super.dispose();
+  }
+
+  void _guardar() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    final resultado = CategoriaDao(
+      id: widget.categoria?.id,
+      nombre: _nombre.text.trim(),
+      descripcion: _descripcion.text.trim(),
+    );
+
+    FocusScope.of(context).unfocus();
+    Navigator.of(context).pop(resultado);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      scrollable: true,
+      title: Text(
+        widget.categoria == null
+            ? 'Nueva categoría'
+            : 'Editar categoría',
+      ),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _nombre,
+              autofocus: false,
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                labelText: 'Nombre',
+                prefixIcon: Icon(Icons.category_outlined),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Ingresa un nombre';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _descripcion,
+              textInputAction: TextInputAction.done,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                labelText: 'Descripción',
+                prefixIcon: Icon(Icons.description_outlined),
+                alignLabelWithHint: true,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            FocusScope.of(context).unfocus();
+            Navigator.of(context).pop();
+          },
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: _guardar,
+          child: const Text('Guardar'),
+        ),
+      ],
     );
   }
 }

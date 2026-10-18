@@ -93,6 +93,11 @@ class BaseScreen {
                           title: const Text('Lotes'),
                           onTap: () => navegarA('/lote'),
                         ),
+                        ListTile(
+                          leading: const Icon(Icons.analytics),
+                          title: const Text('estadísticas'),
+                          onTap: () => navegarA('/estadisticas'),
+                        ),
                       ],
                     ),
                   ),

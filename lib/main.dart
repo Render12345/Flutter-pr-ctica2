@@ -5,6 +5,7 @@ import 'package:practica_2/Screens/CRUD/historial/historial_screen.dart';
 import 'package:practica_2/Screens/CRUD/lote/lote_screen.dart';
 import 'package:practica_2/Screens/CRUD/producto/producto_screen.dart';
 import 'package:practica_2/Screens/CRUD/tienda/tienda_screen.dart';
+import 'package:practica_2/Screens/principal/estadisticas/estadisticas_screen.dart';
 import 'package:practica_2/Screens/principal/home_screen.dart';
 
 Future<void> main() async {
@@ -28,6 +29,8 @@ class MyApp extends StatelessWidget {
         '/producto': (context) => ProductoScreen(),
         '/historial': (context) => HistorialScreen(),
         '/lote': (context) => LoteScreen(),
+         '/estadisticas': (context) =>
+            const EstadisticasScreen(),
       },
     );
   }
